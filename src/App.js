@@ -1,225 +1,618 @@
-import { useEffect, useRef, useState } from 'react';
-import './App.css';
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "react-toastify";
+
 import styles from "./styles.module.scss";
 
-import { AiFillWindows } from "react-icons/ai";
-import noteA from "./mp3/keyA.mp3";
-import noteB from "./mp3/keyB.mp3";
-import noteC from "./mp3/keyC.mp3";
-import noteD from "./mp3/keyD.mp3";
-import noteE from "./mp3/keyE.mp3";
-import noteF from "./mp3/keyF.mp3";
-import noteG from "./mp3/keyG.mp3";
-import noteH from "./mp3/keyH.mp3";
-import noteI from "./mp3/keyI.mp3";
-import noteJ from "./mp3/keyJ.mp3";
-import noteK from "./mp3/keyK.mp3";
-import noteL from "./mp3/keyL.mp3";
-import noteM from "./mp3/keyM.mp3";
-import noteN from "./mp3/keyN.mp3";
-import noteO from "./mp3/keyO.mp3";
-import noteP from "./mp3/keyP.mp3";
-import noteQ from "./mp3/keyQ.mp3";
-import noteR from "./mp3/keyR.mp3";
-import noteS from "./mp3/keyS.mp3";
-import noteT from "./mp3/keyT.mp3";
-import noteU from "./mp3/keyU.mp3";
-import noteV from "./mp3/keyV.mp3";
-import noteW from "./mp3/keyW.mp3";
-import noteX from "./mp3/keyX.mp3";
-import noteY from "./mp3/keyA.mp3";
-import noteZ from "./mp3/keyB.mp3";
+import AudioBank from "./components/AudioBank";
+import ConfirmModal from "./components/ConfirmModal";
+import Controls from "./components/Controls";
+import Footer from "./components/Footer";
+import Header from "./components/Header";
+import Keyboard from "./components/Keyboard";
+import NoteInput from "./components/NoteInput";
+import Notifications from "./components/Notifications";
+import SavedNotes from "./components/SavedNotes";
+
+import { PLAYABLE_KEYS } from "./data/notes";
+import { playAudioNote } from "./utils/audioPlayer";
+import {
+    createSavedNote,
+    getSavedNotes,
+    storeSavedNotes,
+} from "./utils/savedNotesStorage";
+
+const NOTE_PLAY_DELAY = 360;
 
 function App() {
-    let noteAudio = useRef(null);
+    const audioRefs = useRef({});
 
-    useEffect(() => {
-        const allKeys = document.querySelectorAll(".audioKey");
-        allKeys.forEach(key => {
-            key.addEventListener("click", () => {
-                const getKeyValue = key.className.split(" ")[key.className.split(" ").length - 1];
-                noteAudio = document.getElementById(getKeyValue);
+    const highlightTimerRef = useRef(null);
+    const textPlaybackTimersRef = useRef([]);
 
-                noteAudio.currentTime = 0;
-                noteAudio.addEventListener("ended", () => {
-                    // console.log("ended");
-                    document.querySelector("." + getKeyValue).style.cssText = `
-                        box-shadow: 0 0 5px #000;
-                    `;
-                });
-                noteAudio.play();
+    const savedPlaybackTimerRef = useRef(null);
+    const savedPlaybackNotesRef = useRef([]);
+    const savedPlaybackIndexRef = useRef(0);
+    const playbackPausedRef = useRef(false);
+    const playbackMutedRef = useRef(false);
 
-                const noteText = document.querySelector(".textContainer").innerText;
-                const newText = noteText + " " + getKeyValue;
-                document.querySelector(".textContainer").innerText = newText;
+    const [pressedKey, setPressedKey] = useState("");
+    const [playedNotes, setPlayedNotes] = useState([]);
+    const [noteText, setNoteText] = useState("");
+    const [savedNotes, setSavedNotes] = useState(() => getSavedNotes());
 
-                setPressedKey(getKeyValue.toUpperCase());
-            });
+    const [volume, setVolume] = useState(75);
+
+    const [theme, setTheme] = useState(() => {
+        const savedTheme = localStorage.getItem("virtual-piano-theme");
+
+        return savedTheme || "dark";
+    });
+
+    const [isClearModalOpen, setIsClearModalOpen] = useState(false);
+    const [savedNoteToDelete, setSavedNoteToDelete] = useState(null);
+
+    const [playingPatternId, setPlayingPatternId] = useState(null);
+    const [isPlaybackPaused, setIsPlaybackPaused] = useState(false);
+    const [isMuted, setIsMuted] = useState(false);
+
+    const [activeNote, setActiveNote] = useState("");
+    const [activeNoteIndex, setActiveNoteIndex] = useState(-1);
+
+    const playedNotesText = useMemo(() => {
+        return playedNotes.join(" ");
+    }, [playedNotes]);
+
+    const clearTextPlaybackTimers = useCallback(() => {
+        textPlaybackTimersRef.current.forEach((timerId) => {
+            window.clearTimeout(timerId);
         });
 
-        const charList = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"];
-        document.addEventListener("keydown", event => {
-            if (event.repeat) {
+        textPlaybackTimersRef.current = [];
+    }, []);
+
+    const clearHighlightTimer = useCallback(() => {
+        if (highlightTimerRef.current) {
+            window.clearTimeout(highlightTimerRef.current);
+            highlightTimerRef.current = null;
+        }
+    }, []);
+
+    const clearSavedPlaybackTimer = useCallback(() => {
+        if (savedPlaybackTimerRef.current) {
+            window.clearTimeout(savedPlaybackTimerRef.current);
+            savedPlaybackTimerRef.current = null;
+        }
+    }, []);
+
+    const stopAllAudio = useCallback(() => {
+        Object.values(audioRefs.current).forEach((audio) => {
+            if (!audio) {
                 return;
             }
-            const keyValue = event.key;
-            const codeValue = event.code;
-            if (!charList.includes(keyValue.toLowerCase())) {
-                return;
-            }
-            noteAudio = document.getElementById(keyValue.toUpperCase());
-            noteAudio.currentTime = 0;
-            noteAudio.play();
-            document.querySelector("." + keyValue.toUpperCase()).style.cssText = `
-                box-shadow: 0 0 5px #aaa;
-            `;
-            noteAudio.addEventListener("ended", () => {
-                // console.log("ended");
-                document.querySelector("." + keyValue.toUpperCase()).style.cssText = `
-                    box-shadow: 0 0 5px #000;
-                `;
-            });
 
-            const noteText = document.querySelector(".textContainer").innerText;
-            const newText = noteText + " " + keyValue.toUpperCase();
-            document.querySelector(".textContainer").innerText = newText;
-
-            setPressedKey(keyValue.toUpperCase());
+            audio.pause();
+            audio.currentTime = 0;
         });
     }, []);
 
-    const [pressedKey, setPressedKey] = useState("");
-    useEffect(() => {
-        console.log(pressedKey);
-        if (pressedKey.length > 0) {
-            document.querySelectorAll(".audioKey").forEach(key => {
-                // console.log(key.getAttribute("data-note"));
-                key.style.cssText = `
-                    box-shadow: 0 0 5px #000;
-                `;
+    const setAudioMuted = useCallback((muted) => {
+        Object.values(audioRefs.current).forEach((audio) => {
+            if (!audio) {
+                return;
+            }
+
+            audio.muted = muted;
+        });
+    }, []);
+
+    const resetSavedPlayback = useCallback(
+        (stopAudio = true) => {
+            clearSavedPlaybackTimer();
+
+            if (stopAudio) {
+                stopAllAudio();
+            }
+
+            setAudioMuted(false);
+
+            savedPlaybackNotesRef.current = [];
+            savedPlaybackIndexRef.current = 0;
+
+            playbackPausedRef.current = false;
+            playbackMutedRef.current = false;
+
+            setPlayingPatternId(null);
+            setIsPlaybackPaused(false);
+            setIsMuted(false);
+            setPressedKey("");
+
+            setActiveNote("");
+            setActiveNoteIndex(-1);
+        },
+        [clearSavedPlaybackTimer, setAudioMuted, stopAllAudio],
+    );
+
+    const highlightNote = useCallback(
+        (note) => {
+            clearHighlightTimer();
+
+            setPressedKey(note);
+
+            highlightTimerRef.current = window.setTimeout(() => {
+                setPressedKey("");
+                highlightTimerRef.current = null;
+            }, 220);
+        },
+        [clearHighlightTimer],
+    );
+
+    const playKeyboardNote = useCallback(
+        (note, shouldSaveNote = true) => {
+            const safeNote = note.toUpperCase();
+
+            if (!PLAYABLE_KEYS.includes(safeNote)) {
+                return;
+            }
+
+            const audio = audioRefs.current[safeNote];
+
+            playAudioNote({
+                audioElement: audio,
+                volume,
             });
-            document.querySelector("." + pressedKey).style.cssText = `
-                box-shadow: 0 0 5px #aaa;
-            `;
+
+            highlightNote(safeNote);
+
+            if (shouldSaveNote) {
+                setPlayedNotes((currentNotes) => [...currentNotes, safeNote]);
+            }
+        },
+        [highlightNote, volume],
+    );
+
+    const startSavedPlaybackRunner = useCallback(() => {
+        const runNextNote = () => {
+            if (playbackPausedRef.current) {
+                return;
+            }
+
+            const notes = savedPlaybackNotesRef.current;
+            const currentIndex = savedPlaybackIndexRef.current;
+
+            if (currentIndex >= notes.length) {
+                clearSavedPlaybackTimer();
+
+                setAudioMuted(false);
+
+                playbackMutedRef.current = false;
+                playbackPausedRef.current = false;
+
+                savedPlaybackIndexRef.current = 0;
+                savedPlaybackNotesRef.current = [];
+
+                setPlayingPatternId(null);
+                setIsPlaybackPaused(false);
+                setIsMuted(false);
+
+                return;
+            }
+
+            const note = notes[currentIndex];
+
+            setActiveNote(note);
+            setActiveNoteIndex(currentIndex);
+
+            playKeyboardNote(note, false);
+
+            savedPlaybackIndexRef.current = currentIndex + 1;
+
+            savedPlaybackTimerRef.current = window.setTimeout(
+                runNextNote,
+                NOTE_PLAY_DELAY,
+            );
+        };
+
+        runNextNote();
+    }, [clearSavedPlaybackTimer, playKeyboardNote, setAudioMuted]);
+
+    const playTextSequence = useCallback(
+        (notes) => {
+            if (!notes.length) {
+                return;
+            }
+
+            resetSavedPlayback();
+            clearTextPlaybackTimers();
+
+            notes.forEach((note, index) => {
+                const timerId = window.setTimeout(() => {
+                    playKeyboardNote(note, false);
+                }, index * NOTE_PLAY_DELAY);
+
+                textPlaybackTimersRef.current.push(timerId);
+            });
+        },
+        [clearTextPlaybackTimers, playKeyboardNote, resetSavedPlayback],
+    );
+
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            const targetTagName = event.target.tagName;
+
+            if (
+                targetTagName === "INPUT" ||
+                targetTagName === "TEXTAREA" ||
+                targetTagName === "SELECT"
+            ) {
+                return;
+            }
+
+            if (event.repeat) {
+                return;
+            }
+
+            const note = event.key.toUpperCase();
+
+            if (!PLAYABLE_KEYS.includes(note)) {
+                return;
+            }
+
+            playKeyboardNote(note);
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [playKeyboardNote]);
+
+    useEffect(() => {
+        return () => {
+            clearTextPlaybackTimers();
+            clearSavedPlaybackTimer();
+            clearHighlightTimer();
+
+            stopAllAudio();
+            setAudioMuted(false);
+        };
+    }, [
+        clearHighlightTimer,
+        clearSavedPlaybackTimer,
+        clearTextPlaybackTimers,
+        setAudioMuted,
+        stopAllAudio,
+    ]);
+
+    const parseNoteText = (value) => {
+        return value
+            .toUpperCase()
+            .replace(/[^A-Z]/g, "")
+            .split("")
+            .filter((note) => PLAYABLE_KEYS.includes(note));
+    };
+
+    const areNotePatternsEqual = (firstNotes, secondNotes) => {
+        if (firstNotes.length !== secondNotes.length) {
+            return false;
         }
-    }, [pressedKey]);
+
+        return firstNotes.every((note, index) => note === secondNotes[index]);
+    };
+
+    const changeNoteText = (value) => {
+        setNoteText(value);
+    };
+
+    const loadTextNotes = () => {
+        const parsedNotes = parseNoteText(noteText);
+
+        if (parsedNotes.length === 0) {
+            toast.warning("Enter valid A-Z notes first.");
+            return;
+        }
+
+        resetSavedPlayback();
+        clearTextPlaybackTimers();
+
+        setPressedKey("");
+        setPlayedNotes(parsedNotes);
+
+        toast.success(
+            `${parsedNotes.length} notes loaded as the current pattern.`,
+        );
+    };
+
+    const playTextNotes = () => {
+        const parsedNotes = parseNoteText(noteText);
+
+        if (parsedNotes.length === 0) {
+            toast.warning("Enter valid A-Z notes first.");
+            return;
+        }
+
+        playTextSequence(parsedNotes);
+    };
+
+    const playCurrentNotes = () => {
+        if (playedNotes.length === 0) {
+            toast.warning("There are no current notes to play.");
+            return;
+        }
+
+        playTextSequence(playedNotes);
+    };
+
+    const saveCurrentNotes = () => {
+        if (playedNotes.length === 0) {
+            toast.warning("Play or load some notes before saving.");
+            return;
+        }
+
+        const duplicatePattern = savedNotes.some((savedNote) =>
+            areNotePatternsEqual(savedNote.notes, playedNotes),
+        );
+
+        if (duplicatePattern) {
+            toast.warning("This note pattern is already saved.");
+
+            return;
+        }
+
+        const newSavedNote = createSavedNote(playedNotes, savedNotes);
+
+        const updatedSavedNotes = [newSavedNote, ...savedNotes];
+
+        setSavedNotes(updatedSavedNotes);
+        storeSavedNotes(updatedSavedNotes);
+
+        toast.success(`${newSavedNote.name} saved successfully.`);
+    };
+
+    const startSavedPattern = (savedNote) => {
+        if (!savedNote?.notes?.length) {
+            return;
+        }
+
+        clearTextPlaybackTimers();
+        resetSavedPlayback();
+
+        setPlayedNotes([...savedNote.notes]);
+        setPressedKey("");
+
+        savedPlaybackNotesRef.current = [...savedNote.notes];
+        savedPlaybackIndexRef.current = 0;
+
+        playbackPausedRef.current = false;
+        playbackMutedRef.current = false;
+
+        setPlayingPatternId(savedNote.id);
+        setIsPlaybackPaused(false);
+        setIsMuted(false);
+
+        setActiveNote("");
+        setActiveNoteIndex(-1);
+
+        setAudioMuted(false);
+
+        startSavedPlaybackRunner();
+    };
+
+    const pauseSavedPattern = () => {
+        clearSavedPlaybackTimer();
+
+        playbackPausedRef.current = true;
+
+        setIsPlaybackPaused(true);
+        setPressedKey("");
+
+        stopAllAudio();
+
+        setActiveNote("");
+    };
+
+    const resumeSavedPattern = () => {
+        playbackPausedRef.current = false;
+
+        setIsPlaybackPaused(false);
+
+        startSavedPlaybackRunner();
+    };
+
+    const toggleSavedPatternPlayback = (savedNote) => {
+        if (playingPatternId !== savedNote.id) {
+            startSavedPattern(savedNote);
+            return;
+        }
+
+        if (isPlaybackPaused) {
+            resumeSavedPattern();
+            return;
+        }
+
+        pauseSavedPattern();
+    };
+
+    const restartSavedPattern = (savedNote) => {
+        if (!savedNote?.notes?.length) {
+            return;
+        }
+
+        clearTextPlaybackTimers();
+        resetSavedPlayback();
+
+        setPlayedNotes([...savedNote.notes]);
+        setPressedKey("");
+        setActiveNote("");
+        setActiveNoteIndex(-1);
+
+        savedPlaybackNotesRef.current = [...savedNote.notes];
+        savedPlaybackIndexRef.current = 0;
+
+        playbackPausedRef.current = false;
+        playbackMutedRef.current = false;
+
+        setPlayingPatternId(savedNote.id);
+        setIsPlaybackPaused(false);
+        setIsMuted(false);
+
+        setAudioMuted(false);
+
+        startSavedPlaybackRunner();
+    };
+
+    const toggleSavedPatternMute = (savedNote) => {
+        if (playingPatternId !== savedNote.id) {
+            return;
+        }
+
+        const nextMutedState = !playbackMutedRef.current;
+
+        playbackMutedRef.current = nextMutedState;
+
+        setIsMuted(nextMutedState);
+        setAudioMuted(nextMutedState);
+    };
+
+    const openClearModal = () => {
+        if (playedNotes.length === 0) {
+            return;
+        }
+
+        setIsClearModalOpen(true);
+    };
+
+    const closeClearModal = () => {
+        setIsClearModalOpen(false);
+    };
+
+    const confirmClearPlayedNotes = () => {
+        clearTextPlaybackTimers();
+        resetSavedPlayback();
+
+        setPlayedNotes([]);
+        setPressedKey("");
+        setIsClearModalOpen(false);
+
+        toast.success("Current notes cleared.");
+    };
+
+    const requestDeleteSavedNotes = (savedNote) => {
+        setSavedNoteToDelete(savedNote);
+    };
+
+    const closeDeleteSavedNotesModal = () => {
+        setSavedNoteToDelete(null);
+    };
+
+    const confirmDeleteSavedNotes = () => {
+        if (!savedNoteToDelete) {
+            return;
+        }
+
+        const deletedPatternId = savedNoteToDelete.id;
+        const deletedPatternName = savedNoteToDelete.name;
+
+        if (playingPatternId === deletedPatternId) {
+            resetSavedPlayback();
+        }
+
+        const updatedSavedNotes = savedNotes.filter(
+            (savedNote) => savedNote.id !== deletedPatternId,
+        );
+
+        setSavedNotes(updatedSavedNotes);
+        storeSavedNotes(updatedSavedNotes);
+        setSavedNoteToDelete(null);
+
+        toast.success(`${deletedPatternName} deleted.`);
+    };
+
+    const changeVolume = (nextVolume) => {
+        setVolume(nextVolume);
+    };
+
+    const toggleTheme = () => {
+        setTheme((currentTheme) => {
+            const nextTheme = currentTheme === "dark" ? "light" : "dark";
+
+            localStorage.setItem("virtual-piano-theme", nextTheme);
+
+            return nextTheme;
+        });
+    };
 
     return (
-        <div className={`${styles.App}`}>
-            <div className={styles.appName}>a2rp: Keyboard Piano [A-Z]</div>
+        <div className={`${styles.App} ${theme}`}>
+            <Header theme={theme} onToggleTheme={toggleTheme} />
 
-            <audio id="A" src={noteA}></audio>
-            <audio id="B" src={noteB}></audio>
-            <audio id="C" src={noteC}></audio>
-            <audio id="D" src={noteD}></audio>
-            <audio id="E" src={noteE}></audio>
-            <audio id="F" src={noteF}></audio>
-            <audio id="G" src={noteG}></audio>
-            <audio id="H" src={noteH}></audio>
-            <audio id="I" src={noteI}></audio>
-            <audio id="J" src={noteJ}></audio>
-            <audio id="K" src={noteK}></audio>
-            <audio id="L" src={noteL}></audio>
-            <audio id="M" src={noteM}></audio>
-            <audio id="N" src={noteN}></audio>
-            <audio id="O" src={noteO}></audio>
-            <audio id="P" src={noteP}></audio>
-            <audio id="Q" src={noteQ}></audio>
-            <audio id="R" src={noteR}></audio>
-            <audio id="S" src={noteS}></audio>
-            <audio id="T" src={noteT}></audio>
-            <audio id="U" src={noteU}></audio>
-            <audio id="V" src={noteV}></audio>
-            <audio id="W" src={noteW}></audio>
-            <audio id="X" src={noteX}></audio>
-            <audio id="Y" src={noteY}></audio>
-            <audio id="Z" src={noteZ}></audio>
+            <Controls
+                pressedKey={pressedKey}
+                totalNotes={playedNotes.length}
+                volume={volume}
+                onVolumeChange={changeVolume}
+                onClearNotes={openClearModal}
+            />
 
-            <div className={styles.keyboardTextContainer}>
-                <div className={`${styles.textContainer} textContainer`}></div>
-                <div className={`${styles.keysContainer} ${styles.noselect}`}>
-                    <div className={`${styles.firstRow}`}>
-                        <div className={`${styles.key} ${styles.keyBackTick}`}>`</div>
-                        <div className={`${styles.key} ${styles.key1}`}>1</div>
-                        <div className={`${styles.key} ${styles.key2}`}>2</div>
-                        <div className={`${styles.key} ${styles.key3}`}>3</div>
-                        <div className={`${styles.key} ${styles.key4}`}>4</div>
-                        <div className={`${styles.key} ${styles.key5}`}>5</div>
-                        <div className={`${styles.key} ${styles.key6}`}>6</div>
-                        <div className={`${styles.key} ${styles.key7}`}>7</div>
-                        <div className={`${styles.key} ${styles.key8}`}>8</div>
-                        <div className={`${styles.key} ${styles.key9}`}>9</div>
-                        <div className={`${styles.key} ${styles.key0}`}>0</div>
-                        <div className={`${styles.key} ${styles.keyMinus}`}>-</div>
-                        <div className={`${styles.key} ${styles.keyEqualTo}`}>=</div>
-                        <div className={`${styles.key} ${styles.keyBackSpace}`}>backspace</div>
-                    </div>
+            <AudioBank audioRefs={audioRefs} />
 
-                    <div className={styles.secondRow}>
-                        <div className={`${styles.key} ${styles.keyTab}`}>tab</div>
-                        <div data-note="Q" className={`${styles.key} ${styles.keyQ} audioKey Q`}>Q</div>
-                        <div data-note="W" className={`${styles.key} ${styles.keyW} audioKey W`}>W</div>
-                        <div data-note="E" className={`${styles.key} ${styles.keyE} audioKey E`}>E</div>
-                        <div data-note="R" className={`${styles.key} ${styles.keyR} audioKey R`}>R</div>
-                        <div data-note="T" className={`${styles.key} ${styles.keyT} audioKey T`}>T</div>
-                        <div data-note="Y" className={`${styles.key} ${styles.keyY} audioKey Y`}>Y</div>
-                        <div data-note="U" className={`${styles.key} ${styles.keyU} audioKey U`}>U</div>
-                        <div data-note="I" className={`${styles.key} ${styles.keyI} audioKey I`}>I</div>
-                        <div data-note="O" className={`${styles.key} ${styles.keyO} audioKey O`}>O</div>
-                        <div data-note="P" className={`${styles.key} ${styles.keyP} audioKey P`}>P</div>
-                        <div className={`${styles.key} ${styles.keyLeftSquareBracket}`}>[</div>
-                        <div className={`${styles.key} ${styles.keyRightSquareBracket}`}>]</div>
-                        <div className={`${styles.key} ${styles.keyBackSlash}`}>\</div>
-                    </div>
+            <Keyboard
+                pressedKey={pressedKey}
+                playedNotesText={playedNotesText}
+                totalNotes={playedNotes.length}
+                onPlayNote={playKeyboardNote}
+                onSaveNotes={saveCurrentNotes}
+                onPlayCurrentNotes={playCurrentNotes}
+                onClearCurrentNotes={openClearModal}
+            />
 
-                    <div className={styles.thirdRow}>
-                        <div className={`${styles.key} ${styles.keyCapsLock}`}>caps lock</div>
-                        <div data-note="A" className={`${styles.key} ${styles.keyA} audioKey A`}>A</div>
-                        <div data-note="S" className={`${styles.key} ${styles.keyS} audioKey S`}>S</div>
-                        <div data-note="D" className={`${styles.key} ${styles.keyD} audioKey D`}>D</div>
-                        <div data-note="F" className={`${styles.key} ${styles.keyF} audioKey F`}>F</div>
-                        <div data-note="G" className={`${styles.key} ${styles.keyG} audioKey G`}>G</div>
-                        <div data-note="H" className={`${styles.key} ${styles.keyH} audioKey H`}>H</div>
-                        <div data-note="J" className={`${styles.key} ${styles.keyJ} audioKey J`}>J</div>
-                        <div data-note="K" className={`${styles.key} ${styles.keyK} audioKey K`}>K</div>
-                        <div data-note="L" className={`${styles.key} ${styles.keyL} audioKey L`}>L</div>
-                        <div className={`${styles.key} ${styles.keySemiColon}`}>;</div>
-                        <div className={`${styles.key} ${styles.keySingleSemiColon}`}>'</div>
-                        <div className={`${styles.key} ${styles.keyEnter}`}>enter</div>
-                    </div>
+            <NoteInput
+                noteText={noteText}
+                onNoteTextChange={changeNoteText}
+                onLoad={loadTextNotes}
+                onPlay={playTextNotes}
+            />
 
-                    <div className={styles.fourthRow}>
-                        <div className={`${styles.key} ${styles.keyLeftShift}`}>Shift</div>
-                        <div data-note="Z" className={`${styles.key} ${styles.keyZ} audioKey Z`}>Z</div>
-                        <div data-note="X" className={`${styles.key} ${styles.keyX} audioKey X`}>X</div>
-                        <div data-note="C" className={`${styles.key} ${styles.keyC} audioKey C`}>C</div>
-                        <div data-note="V" className={`${styles.key} ${styles.keyV} audioKey V`}>V</div>
-                        <div data-note="B" className={`${styles.key} ${styles.keyB} audioKey B`}>B</div>
-                        <div data-note="N" className={`${styles.key} ${styles.keyN} audioKey N`}>N</div>
-                        <div data-note="M" className={`${styles.key} ${styles.keyM} audioKey M`}>M</div>
-                        <div className={`${styles.key} ${styles.keyComma}`}>,</div>
-                        <div className={`${styles.key} ${styles.keyDot}`}>.</div>
-                        <div className={`${styles.key} ${styles.keyForwardSlash}`}>/</div>
-                        <div className={`${styles.key} ${styles.keyRightShift}`}>Shift</div>
-                    </div>
+            <SavedNotes
+                savedNotes={savedNotes}
+                playingPatternId={playingPatternId}
+                isPlaybackPaused={isPlaybackPaused}
+                isMuted={isMuted}
+                activeNote={activeNote}
+                activeNoteIndex={activeNoteIndex}
+                onTogglePlay={toggleSavedPatternPlayback}
+                onRestart={restartSavedPattern}
+                onToggleMute={toggleSavedPatternMute}
+                onDelete={requestDeleteSavedNotes}
+            />
 
-                    <div className={styles.fifthRow}>
-                        <div className={`${styles.key} ${styles.keyLeftCtrl}`}>Shift</div>
-                        <div className={`${styles.key} ${styles.keyFunction}`}>fn</div>
-                        <div className={`${styles.key} ${styles.keyWindow}`}><AiFillWindows /></div>
-                        <div className={`${styles.key} ${styles.keyLeftAlt}`}>alt</div>
-                        <div className={`${styles.key} ${styles.keySpaceBar}`}></div>
-                        <div className={`${styles.key} ${styles.keyRightAlt}`}>alt</div>
-                        <div className={`${styles.key} ${styles.keyRightCtrl}`}>ctrl</div>
-                        <div className={`${styles.key} ${styles.keyLeftArrow}`}>&lt;</div>
-                        <div className={`${styles.key} ${styles.keyUpDownArrow}`}>
-                            <div className={`${styles.arrowKey} ${styles.upArrow}`}>&#8963;</div>
-                            <div className={`${styles.arrowKey} ${styles.downArrow}`}>&#8964;</div>
-                        </div>
-                        <div className={`${styles.key} ${styles.keyRightArrow}`}>&gt;</div>
-                    </div>
-                </div>
-            </div>
+            <Footer />
+
+            <ConfirmModal
+                isOpen={isClearModalOpen}
+                title="Clear current notes?"
+                message="This will clear the current note pattern from the keyboard. Your separately saved patterns will remain available."
+                confirmText="Clear Notes"
+                cancelText="Keep Notes"
+                onConfirm={confirmClearPlayedNotes}
+                onCancel={closeClearModal}
+            />
+
+            <ConfirmModal
+                isOpen={Boolean(savedNoteToDelete)}
+                title="Delete saved pattern?"
+                message={
+                    savedNoteToDelete
+                        ? `${savedNoteToDelete.name} will be permanently removed from your saved note patterns.`
+                        : ""
+                }
+                confirmText="Delete Pattern"
+                cancelText="Keep Pattern"
+                onConfirm={confirmDeleteSavedNotes}
+                onCancel={closeDeleteSavedNotesModal}
+            />
+
+            <Notifications theme={theme} />
         </div>
     );
 }
