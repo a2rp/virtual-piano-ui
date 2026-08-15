@@ -4,6 +4,8 @@ A modern interactive virtual piano built with React and SCSS.
 
 Play notes using your keyboard or mouse, create note patterns, replay saved patterns, pause/resume playback, mute audio, and save patterns locally.
 
+![Virtual Piano UI](preview.png)
+
 ## Features
 
 - A-Z interactive piano keyboard
