@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/virtual-piano-ui/static/css/main.3ed40ad5.css",
-    "main.js": "/virtual-piano-ui/static/js/main.2bcb22f2.js",
+    "main.css": "/virtual-piano-ui/static/css/main.4dae9bee.css",
+    "main.js": "/virtual-piano-ui/static/js/main.4a7578f2.js",
     "static/media/keyA.mp3": "/virtual-piano-ui/static/media/keyA.0031742990f0fdad8be6.mp3",
     "static/media/keyB.mp3": "/virtual-piano-ui/static/media/keyB.4e2b9b8e47da0e5b3a76.mp3",
     "static/media/keyC.mp3": "/virtual-piano-ui/static/media/keyC.21c94dc36d3c7e604865.mp3",
@@ -27,11 +27,11 @@
     "static/media/keyW.mp3": "/virtual-piano-ui/static/media/keyW.0a5ad6edad4817e1e3bf.mp3",
     "static/media/keyX.mp3": "/virtual-piano-ui/static/media/keyX.7e2e5ebcf6979089a3e2.mp3",
     "index.html": "/virtual-piano-ui/index.html",
-    "main.3ed40ad5.css.map": "/virtual-piano-ui/static/css/main.3ed40ad5.css.map",
-    "main.2bcb22f2.js.map": "/virtual-piano-ui/static/js/main.2bcb22f2.js.map"
+    "main.4dae9bee.css.map": "/virtual-piano-ui/static/css/main.4dae9bee.css.map",
+    "main.4a7578f2.js.map": "/virtual-piano-ui/static/js/main.4a7578f2.js.map"
   },
   "entrypoints": [
-    "static/css/main.3ed40ad5.css",
-    "static/js/main.2bcb22f2.js"
+    "static/css/main.4dae9bee.css",
+    "static/js/main.4a7578f2.js"
   ]
 }
