@@ -1,0 +1,140 @@
+.key {
+    position: relative;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 1 1 0;
+
+    min-width: 0;
+    height: 50px;
+
+    padding: 0 8px;
+
+    overflow: hidden;
+
+    border: 1px solid var(--key-border, #343434);
+    border-radius: 10px;
+
+    font: inherit;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+    text-transform: uppercase;
+    white-space: nowrap;
+
+    user-select: none;
+
+    transition:
+        border-color 160ms ease,
+        box-shadow 160ms ease,
+        text-shadow 160ms ease,
+        transform 100ms ease;
+
+    &[data-size="medium"] {
+        flex-grow: 1.45;
+    }
+
+    &[data-size="wide"] {
+        flex-grow: 1.9;
+    }
+
+    &[data-size="extraWide"] {
+        flex-grow: 2.5;
+    }
+
+    &[data-size="space"] {
+        flex-grow: 7;
+    }
+}
+
+.playable {
+    color: var(--key-text, #dceeff);
+    background: var(--key-bg, #101923);
+
+    border-color: var(--key-playable-border, #36536f);
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 5px 0 var(--key-depth, #030608),
+        0 9px 18px rgba(0, 0, 0, 0.2);
+
+    cursor: pointer;
+    touch-action: manipulation;
+
+    &:hover {
+        border-color: var(--accent, #7fbdff);
+
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.05),
+            0 5px 0 var(--key-depth, #030608),
+            0 10px 21px rgba(0, 0, 0, 0.24),
+            0 0 0 2px var(--accent-soft, rgba(124, 188, 255, 0.05));
+
+        text-shadow: 0 0 8px rgba(124, 188, 255, 0.18);
+    }
+
+    &:active {
+        transform: translateY(4px);
+
+        box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.04),
+            0 1px 0 var(--key-depth, #030608),
+            0 4px 9px rgba(0, 0, 0, 0.2);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--focus, #ffffff);
+        outline-offset: 3px;
+    }
+}
+
+.disabled {
+    color: var(--key-disabled-text, #61676d);
+    background: var(--key-disabled-bg, #111111);
+
+    border-color: var(--border, #262626);
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.02),
+        0 4px 0 var(--key-disabled-depth, #050505);
+
+    cursor: default;
+}
+
+.active {
+    color: var(--key-active-text, #06111c);
+    background: var(--key-active-bg, #a9d8ff);
+
+    border-color: var(--key-active-border, #d7ebff);
+
+    transform: translateY(4px);
+
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        0 1px 0 var(--key-active-depth, #345b7d),
+        0 0 18px rgba(112, 190, 255, 0.34);
+}
+
+.content {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+.arrowStack {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+
+    svg {
+        width: 11px;
+        height: 11px;
+    }
+}

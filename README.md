@@ -1,106 +1,187 @@
 # Virtual Piano UI
 
-A modern interactive virtual piano built with React and SCSS.
+A modern interactive virtual piano built with React and Vite.
 
-Play notes using your keyboard or mouse, create note patterns, replay saved patterns, pause/resume playback, mute audio, and save patterns locally.
+Virtual Piano UI lets you play notes using your computer keyboard or on-screen controls, create note patterns, convert text into playable sequences, save patterns locally, and replay them with dedicated playback controls.
 
-![Virtual Piano UI](preview.png)
+## Preview
+
+![Virtual Piano UI](screenshot.png)
+
+## Live Demo
+
+[Open Virtual Piano UI](https://a2rp.github.io/virtual-piano-ui/)
 
 ## Features
 
-- A-Z interactive piano keyboard
-- Mouse and physical keyboard support
-- Volume control
-- Dark and light theme
-- Theme saved in localStorage
-- Current note pattern display
-- Play, clear, and save notes
-- Text-to-notes input
-- Saved note patterns
-- LocalStorage persistence
+- Play notes using A to Z keyboard keys
+- Interactive on-screen keyboard
+- 24 local piano audio samples
+- Adjustable volume control
+- Current note pattern tracking
+- Save note patterns in the browser
 - Duplicate pattern prevention
-- Play, pause, resume, restart, mute, and delete saved patterns
-- Confirmation modals
+- Play, pause, resume, and restart saved patterns
+- Mute and unmute pattern playback
+- Delete saved patterns with confirmation
+- Convert typed text into playable notes
+- Load text notes into the current pattern
+- Dark and light themes
+- LocalStorage persistence
 - Toast notifications
-- Responsive design
-- Micro-interactions and active key animations
+- Accessible keyboard and pointer controls
+- Responsive layout for desktop, tablet, and mobile
+- Fixed responsive header
+- Back-to-top control
+- GitHub Pages deployment
 
 ## Tech Stack
 
 - React
-- Create React App
+- Vite
+- JavaScript
 - SCSS Modules
 - React Icons
 - React Toastify
 - HTML5 Audio
 - LocalStorage
+- ESLint
+- GitHub Pages
 
-## Run Locally
+## Project Structure
+
+```text
+src
+├── components
+│   ├── backToTop
+│   ├── confirmModal
+│   ├── controls
+│   ├── currentNotes
+│   ├── footer
+│   ├── header
+│   ├── keyboard
+│   ├── pianoKey
+│   ├── savedNotes
+│   ├── textToNotes
+│   ├── themeToggle
+│   └── toast
+├── constants
+│   └── pianoConstants.js
+├── hooks
+│   ├── useLocalStorage.js
+│   ├── usePianoAudio.js
+│   ├── usePlayback.js
+│   └── useTheme.js
+├── mp3
+│   └── piano audio files
+├── utils
+│   ├── noteUtils.js
+│   └── storageUtils.js
+├── App.jsx
+├── App.module.scss
+├── index.css
+├── main.jsx
+└── theme.css
+```
+
+## Getting Started
+
+Clone the repository:
+
+```bash
+git clone https://github.com/a2rp/virtual-piano-ui.git
+```
+
+Open the project:
+
+```bash
+cd virtual-piano-ui
+```
+
+Install dependencies:
 
 ```bash
 npm install
-npm start
 ```
 
-## Build
+Start the development server:
+
+```bash
+npm run dev
+```
+
+## Available Scripts
+
+Run the development server:
+
+```bash
+npm run dev
+```
+
+Run ESLint:
+
+```bash
+npm run lint
+```
+
+Create a production build:
 
 ```bash
 npm run build
 ```
 
-## Preview
+Preview the production build locally:
 
-Add the project preview image here.
+```bash
+npm run preview
+```
 
-## Author
+Deploy to GitHub Pages:
 
-**Ashish Ranjan**
+```bash
+npm run deploy
+```
 
-- Portfolio: https://www.ashishranjan.net
-- GitHub: https://github.com/a2rp
-- CodePen: https://codepen.io/ash1198
-- LinkedIn: https://www.linkedin.com/in/aashishranjan
-- Facebook: https://www.facebook.com/theash.ashish/
-- YouTube: https://www.youtube.com/@ashishranjan-ashz?sub_confirmation=1
-- Email: mailto:ash.ranjan09@gmail.com
+## Data Storage
 
-## Support
+Saved note patterns, theme preferences, and volume settings are stored locally in the browser using LocalStorage.
 
-- Support: https://a2rp-donation-page.netlify.app/
-- Buy Me A Coffee: https://buymeacoffee.com/a2rp
-- Patreon: https://patreon.com/a2rp
+No account or external database is required.
+
+## Audio
+
+The project uses local MP3 audio samples for piano notes.
+
+A to X use individual audio samples. Y and Z reuse existing samples so the complete A to Z computer keyboard remains playable with the available audio set.
+
+## Future Prospects
+
+- Additional piano sound sets
+- Multiple octaves
+- Adjustable playback speed
+- Pattern import and export
+- Downloadable note patterns
+- Improved mobile keyboard controls
+- Additional instrument modes
+
+## License
+
+This project is licensed under the MIT License.
+
+See the [LICENSE](LICENSE) file for details.
 
 ## Links
 
-- Portfolio: [https://www.ashishranjan.net](https://www.ashishranjan.net)
-- GitHub: [https://github.com/a2rp](https://github.com/a2rp)
-- CodePen: [https://codepen.io/ash1198](https://codepen.io/ash1198)
-- LinkedIn: [https://www.linkedin.com/in/aashishranjan](https://www.linkedin.com/in/aashishranjan)
-- Facebook: [https://www.facebook.com/theash.ashish/](https://www.facebook.com/theash.ashish/)
-- YouTube: [https://www.youtube.com/@ashishranjan-ashz?sub_confirmation=1](https://www.youtube.com/@ashishranjan-ashz?sub_confirmation=1)
-- Email: [ash.ranjan09@gmail.com](mailto:ash.ranjan09@gmail.com)
+- [Portfolio](https://www.ashishranjan.net)
+- [GitHub](https://github.com/a2rp)
+- [CodePen](https://codepen.io/ash1198)
+- [LinkedIn](https://www.linkedin.com/in/aashishranjan)
+- [Facebook](https://www.facebook.com/theash.ashish)
+- [YouTube](https://www.youtube.com/channel/UCLHIBQeFQIxmRveVAjLvlbQ)
+- [Email](mailto:ash.ranjan09@gmail.com)
 
 ## Support
 
-- Support: [https://a2rp-donation-page.netlify.app/](https://a2rp-donation-page.netlify.app/)
-- Buy Me A Coffee: [https://buymeacoffee.com/a2rp](https://buymeacoffee.com/a2rp)
-- Patreon: [https://patreon.com/a2rp](https://patreon.com/a2rp)
-<!-- Project links -->
-
-## Links
-
-- Live: [https://a2rp.github.io/virtual-piano-ui/](https://a2rp.github.io/virtual-piano-ui/)
-- Repository: [https://github.com/a2rp/virtual-piano-ui](https://github.com/a2rp/virtual-piano-ui)
-- Portfolio: [https://www.ashishranjan.net/](https://www.ashishranjan.net/)
-- GitHub: [https://github.com/a2rp](https://github.com/a2rp)
-- CodePen: [https://codepen.io/ash1198](https://codepen.io/ash1198)
-- LinkedIn: [https://www.linkedin.com/in/aashishranjan](https://www.linkedin.com/in/aashishranjan)
-- Facebook: [https://www.facebook.com/theash.ashish/](https://www.facebook.com/theash.ashish/)
-- YouTube: [https://www.youtube.com/@ashishranjan-ashz?sub_confirmation=1](https://www.youtube.com/@ashishranjan-ashz?sub_confirmation=1)
-- Email: [ash.ranjan09@gmail.com](mailto:ash.ranjan09@gmail.com)
-
-## Support
-
-- Support: [https://a2rp-donation-page.netlify.app/](https://a2rp-donation-page.netlify.app/)
-- Buy Me a Coffee: [https://buymeacoffee.com/a2rp](https://buymeacoffee.com/a2rp)
-- Patreon: [https://www.patreon.com/a2rp](https://www.patreon.com/a2rp)
+- [Support](https://a2rp-donation-page.netlify.app/)
+- [Buy Me a Coffee](https://buymeacoffee.com/a2rp)
+- [Patreon](https://www.patreon.com/a2rp)

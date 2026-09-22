@@ -1,0 +1,152 @@
+.section {
+    width: min(1180px, calc(100% - 40px));
+
+    margin: 0 auto 16px;
+    padding: 24px;
+
+    background: var(--surface, #080808);
+
+    border: 1px solid var(--border, #292929);
+    border-radius: 20px;
+
+    box-shadow: var(--card-shadow, 0 10px 32px rgba(0, 0, 0, 0.18));
+
+    scroll-margin-top: 90px;
+}
+
+.header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 30px;
+
+    margin-bottom: 22px;
+}
+
+.label {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+
+    margin-bottom: 8px;
+
+    color: var(--accent, #8ec8ff);
+
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+
+    svg {
+        width: 13px;
+        height: 13px;
+    }
+}
+
+.title {
+    margin: 0;
+
+    color: var(--text, #f0f0f0);
+
+    font-size: clamp(2.2rem, 6vw, 4.4rem);
+    font-weight: 700;
+    letter-spacing: -0.05em;
+    line-height: 0.98;
+}
+
+.text {
+    max-width: 620px;
+
+    margin: 14px 0 0;
+
+    color: var(--text-muted, #858585);
+
+    font-size: 0.8rem;
+    line-height: 1.7;
+}
+
+.hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+
+    flex-shrink: 0;
+
+    padding: 8px 10px;
+
+    color: var(--text-subtle, #717171);
+
+    border: 1px solid var(--border, #292929);
+    border-radius: 999px;
+
+    font-size: 0.64rem;
+    font-weight: 700;
+
+    svg {
+        width: 12px;
+        height: 12px;
+    }
+}
+
+.scrollArea {
+    width: 100%;
+
+    padding: 3px 2px 12px;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    &:focus-visible {
+        outline: 2px solid var(--focus, #ffffff);
+        outline-offset: 4px;
+        border-radius: 8px;
+    }
+}
+
+.keyboard {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+
+    min-width: 920px;
+}
+
+.row {
+    display: flex;
+    gap: 7px;
+
+    width: 100%;
+}
+
+.mobileHint {
+    display: none;
+
+    margin: 7px 0 0;
+
+    color: var(--text-subtle, #626262);
+
+    font-size: 0.65rem;
+    line-height: 1.6;
+}
+
+@media (max-width: 700px) {
+    .section {
+        width: calc(100% - 28px);
+
+        padding: 19px;
+    }
+
+    .header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .hint {
+        align-self: flex-start;
+    }
+
+    .mobileHint {
+        display: block;
+    }
+}
